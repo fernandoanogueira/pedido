@@ -1,5 +1,6 @@
 package com.nogueira.pedido.service;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -10,9 +11,9 @@ import com.nogueira.pedido.dto.EmpresaDTO;
 @Service
 public class CadastroConsumerService {
 	
-	private static final String URL_CADASTRO_EMPRESA = "http://localhost:8081/empresa/";
-	private static final String URL_CADASTRO_EMPREGADO = "http://localhost:8081/empregado/";
-	private static final String URL_CADASTRO_CARTAO = "http://localhost:8081/cartao/";
+	private static final String URL_CADASTRO_EMPRESA = "http://localhost:8082/empresa/";
+	private static final String URL_CADASTRO_EMPREGADO = "http://localhost:8082/empregado/";
+	private static final String URL_CADASTRO_CARTAO = "http://localhost:8082/cartao/";
 	
 	RestTemplate restTemplate = new RestTemplate();
 	
@@ -28,9 +29,9 @@ public class CadastroConsumerService {
 		return response;
 	}
 	
-	public CartaoDTO consultarCartao(Long id) {
+	public ResponseEntity<CartaoDTO> consultarCartao(Long id) {
 		String url = URL_CADASTRO_CARTAO + id.toString(); 
-		CartaoDTO response = restTemplate.getForObject(url, CartaoDTO.class);
+		ResponseEntity<CartaoDTO> response = restTemplate.getForEntity(url, CartaoDTO.class);
 		return response;
 	}
 	

@@ -49,7 +49,7 @@ public class PedidoService {
 	}
 
 	private void validarCartao(PedidoDTO pedidoDTO) {
-		CartaoDTO cartao = cadastroConsumerService.consultarCartao(pedidoDTO.getIdCartao());
+		CartaoDTO cartao = cadastroConsumerService.consultarCartao(pedidoDTO.getIdCartao()).getBody();
 		if(cartao==null) {
 			throw new RuntimeException("Cartão informado não é válido.");			
 		}
