@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.nogueira.pedido.dto.CartaoDTO;
@@ -26,7 +25,7 @@ public class PedidoService {
 	private CadastroConsumerService cadastroConsumerService;
 	
 	public PedidoDTO consultarPedidoPorId(Long id) {
-		Pedido pedido = pedidoRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Pedido não encontrado"));
+		Pedido pedido = pedidoRepository.findById(id).orElse(null);
 		return mapper.map(pedido, PedidoDTO.class);
 	}
 
