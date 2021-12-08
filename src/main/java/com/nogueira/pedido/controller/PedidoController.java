@@ -30,18 +30,18 @@ public class PedidoController {
 	}
 	
 	@GetMapping(value = "/pedido/")
-	public List<PedidoDTO> listarPedidos(){
-		return service.listarPedidos();
+	public ResponseEntity<List<PedidoDTO>> listarPedidos(){
+		return ResponseEntity.ok(service.listarPedidos());
 	}
 	
 	@PutMapping(value= "/pedido/")
-	public PedidoDTO inserirPedido(@RequestBody PedidoDTO pedido) {
-		return service.inserirPedido(pedido);
+	public ResponseEntity<PedidoDTO> inserirPedido(@RequestBody PedidoDTO pedido) {
+		return ResponseEntity.ok(service.inserirPedido(pedido));
 	}
 	
 	@GetMapping(value="/pedido/media")
-	public BigDecimal retornarTotalDePedidos() {
-		return service.calcularMediaDosPedidos();
+	public ResponseEntity<BigDecimal> retornarTotalDePedidos() {
+		return ResponseEntity.ok(service.calcularMediaDosPedidos());
 	}
 
 }
