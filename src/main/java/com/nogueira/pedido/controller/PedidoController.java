@@ -1,5 +1,6 @@
 package com.nogueira.pedido.controller;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,11 @@ public class PedidoController {
 	@PutMapping(value= "/pedido/")
 	public PedidoDTO inserirPedido(@RequestBody PedidoDTO pedido) {
 		return service.inserirPedido(pedido);
+	}
+	
+	@GetMapping(value="/pedido/media")
+	public BigDecimal retornarTotalDePedidos() {
+		return service.calcularMediaDosPedidos();
 	}
 
 }

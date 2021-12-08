@@ -1,7 +1,9 @@
 package com.nogueira.pedido.service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,9 @@ public class PedidoService {
 	
 	@Autowired
 	private CadastroConsumerService cadastroConsumerService;
+	
+	@Autowired
+	private CalculatorService calculatorService;
 	
 	public PedidoDTO consultarPedidoPorId(Long id) {
 		Pedido pedido = pedidoRepository.findById(id).orElse(null);
@@ -59,6 +64,15 @@ public class PedidoService {
 				.consultarVinculoEmpresaEmpregado(pedidoDTO.getIdEmpresa(), pedidoDTO.getIdEmpregado())) {
 			throw new RuntimeException("Não há vínculo entre a empresa e o empregado informados.");
 		}
+	}
+
+	public BigDecimal calcularMediaDosPedidos() {
+		List<Pedido> pedidos = pedidoRepository.findAll();
+		
+		Function<Pedido, BigDecimal> valorMapper = pedido -> pedido.getValor();
+		BigDecimal valorTotal = pedidos.stream().map(valorMapper).reduce(BigDecimal.ZERO, BigDecimal::add);
+		
+		return calculatorService.divide(valorTotal.longValue(), pedidos.size());
 	}
 
 }
