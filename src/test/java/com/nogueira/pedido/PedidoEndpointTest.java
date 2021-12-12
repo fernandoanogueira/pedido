@@ -1,7 +1,5 @@
 package com.nogueira.pedido;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Optional;
@@ -11,6 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,8 +27,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import com.nogueira.pedido.dto.CartaoDTO;
+import com.nogueira.pedido.dto.PedidoDTO;
 import com.nogueira.pedido.model.Pedido;
 import com.nogueira.pedido.repository.PedidoRepository;
+import com.nogueira.pedido.service.CadastroConsumerService;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -44,11 +46,16 @@ public class PedidoEndpointTest {
 
 	@MockBean
 	private PedidoRepository pedidoRepository;
+	
+	@MockBean
+	private CadastroConsumerService cadastroConsumerService;
 
 	@Autowired
 	private MockMvc mockMvc;
 
 	private Pedido pedido;
+	
+	private PedidoDTO pedidoDTO;
 
 	@TestConfiguration
 	static class Config {
@@ -61,6 +68,8 @@ public class PedidoEndpointTest {
 	@Before
 	public void setup() {
 		pedido = new Pedido(1L, 1, 1, 1L, BigDecimal.valueOf(10L), new Date());
+		
+		pedidoDTO = new PedidoDTO(1L, 1L, 1L, 1L, BigDecimal.valueOf(10L), new Date());
 
 		BDDMockito.when(pedidoRepository.findById(1L)).thenReturn(Optional.of(pedido));
 	}
@@ -76,7 +85,7 @@ public class PedidoEndpointTest {
 	@Test
 	public void getPedidoInexistente_DeveRetornarStatusCode404() {
 
-		ResponseEntity<Pedido> response = restTemplate.getForEntity("/pedido/{id}", Pedido.class, 256L);
+		ResponseEntity<PedidoDTO> response = restTemplate.getForEntity("/pedido/{id}", PedidoDTO.class, 256L);
 		Assertions.assertThat(response.getStatusCodeValue()).isEqualTo(HttpStatus.NOT_FOUND.value());
 	}
 
@@ -85,7 +94,7 @@ public class PedidoEndpointTest {
 
 		BDDMockito.doNothing().when(pedidoRepository).delete(pedido);
 
-		ResponseEntity<Pedido> exchange = restTemplate.exchange("/pedido/{id}", HttpMethod.DELETE, null, Pedido.class,
+		ResponseEntity<PedidoDTO> exchange = restTemplate.exchange("/pedido/{id}", HttpMethod.DELETE, null, PedidoDTO.class,
 				1L);
 
 		Assertions.assertThat(exchange.getStatusCodeValue()).isEqualTo(HttpStatus.OK.value());
@@ -94,7 +103,7 @@ public class PedidoEndpointTest {
 	@Test
 	public void deleteQuandoPedidoNaoExistir_DeveRetornarStatusCode404() {
 
-		ResponseEntity<Pedido> exchange = restTemplate.exchange("/pedido/{id}", HttpMethod.DELETE, null, Pedido.class,
+		ResponseEntity<PedidoDTO> exchange = restTemplate.exchange("/pedido/{id}", HttpMethod.DELETE, null, PedidoDTO.class,
 				256L);
 
 		Assertions.assertThat(exchange.getStatusCodeValue()).isEqualTo(HttpStatus.NOT_FOUND.value());
@@ -106,6 +115,34 @@ public class PedidoEndpointTest {
 		mockMvc.perform(MockMvcRequestBuilders
 				.delete("/pedido/{id}", 256L))
 				.andExpect(MockMvcResultMatchers.status().isNotFound());
+	}
+	
+	@Test
+	public void incluirQuandoCartaoNaoExiste_DeveRetornarStatusCode400() {
+		
+		BDDMockito.when(cadastroConsumerService.consultarCartao(1L)).thenReturn(null);
+		
+		ResponseEntity<PedidoDTO> response = restTemplate.postForEntity("/pedido/", pedidoDTO, PedidoDTO.class);
+		
+		Assertions.assertThat(response.getStatusCodeValue()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+	}
+	
+	@Test
+	public void incluirCartaoExisteVinculoEmpregadoEmpresa_DeveRetornarStatusCode200() {
+		
+		BDDMockito.when(cadastroConsumerService.consultarCartao(1L))
+			.thenReturn(new ResponseEntity<CartaoDTO>(new CartaoDTO(1L, "Cartao 1", "SC"), HttpStatus.OK));
+		
+		BDDMockito.when(cadastroConsumerService.consultarVinculoEmpresaEmpregado(1L, 1L))
+			.thenReturn(true);
+		
+		BDDMockito.when(pedidoRepository.save(Mockito.any())).thenReturn(pedido);
+		
+		ResponseEntity<PedidoDTO> response = restTemplate.postForEntity("/pedido/", pedidoDTO, PedidoDTO.class);
+		
+		Assertions.assertThat(response.getStatusCodeValue()).isEqualTo(HttpStatus.OK.value());
+		
+		Assertions.assertThat(response.getBody().getIdEmpregado()).isEqualTo(1L);
 	}
 	
 }
