@@ -31,7 +31,12 @@ public class PedidoService {
 	
 	public PedidoDTO consultarPedidoPorId(Long id) {
 		Pedido pedido = pedidoRepository.findById(id).orElse(null);
-		return mapper.map(pedido, PedidoDTO.class);
+		
+		try {
+			return mapper.map(pedido, PedidoDTO.class);
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 	public List<PedidoDTO> listarPedidos() {
@@ -49,7 +54,6 @@ public class PedidoService {
 		Pedido pedido = mapper.map(pedidoDTO, Pedido.class);
 		
 		return mapper.map(pedidoRepository.save(pedido), PedidoDTO.class);
-		
 	}
 
 	private void validarCartao(PedidoDTO pedidoDTO) {
@@ -73,6 +77,20 @@ public class PedidoService {
 		BigDecimal valorTotal = pedidos.stream().map(valorMapper).reduce(BigDecimal.ZERO, BigDecimal::add);
 		
 		return calculatorService.divide(valorTotal.longValue(), pedidos.size());
+	}
+
+	public PedidoDTO excluirPedido(Long id) {
+		Pedido pedido = pedidoRepository.findById(id).orElse(null);
+		
+		if(pedido != null) {
+			pedidoRepository.delete(pedido);	
+		}
+		
+		try {
+			return mapper.map(pedido, PedidoDTO.class);
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 }
